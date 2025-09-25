@@ -12,7 +12,7 @@ export const exportData = async (categories) => {
           createdAt: item.createdAt || new Date().toISOString(),
           updatedAt: item.updatedAt || new Date().toISOString()
         }))
-      })),
+      })),A
       exportedAt: new Date().toISOString(),
       version: '1.0'
     }
