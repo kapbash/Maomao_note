@@ -47,7 +47,7 @@ export default function ExportImportModal({ visible, onClose, onExport, onImport
 
     try {
       // Use the new File API to read the file
-      const file = new File(selectedFile.uri);
+      const file = new File(selectedFile.uri)
       const fileContent = await file.text();
       const data = JSON.parse(fileContent);
       

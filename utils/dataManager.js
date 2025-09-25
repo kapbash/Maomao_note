@@ -30,7 +30,7 @@ export const exportData = async (categories) => {
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync()
     if (isAvailable) {
-      await Sharing.shareAsync(file.uri, {
+      await Sharing.shareAsync(file.path, {
         mimeType: 'application/json',
         dialogTitle: 'Export MaoMao Notes Data',
         UTI: 'public.json'
