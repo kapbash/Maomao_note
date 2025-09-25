@@ -1,5 +1,5 @@
 import { Alert } from 'react-native'
-import { File, Directory } from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 
 export const exportData = async (categories) => {
@@ -12,7 +12,7 @@ export const exportData = async (categories) => {
           createdAt: item.createdAt || new Date().toISOString(),
           updatedAt: item.updatedAt || new Date().toISOString()
         }))
-      })),A
+      })),
       exportedAt: new Date().toISOString(),
       version: '1.0'
     }
@@ -20,17 +20,16 @@ export const exportData = async (categories) => {
     const jsonString = JSON.stringify(exportData, null, 2)
     const fileName = `maomao_notes_${new Date().toISOString().split('T')[0]}.json`
     
-    // Use the new File API
-    const documentsDir = Directory.documentDirectory
-    const file = new File(documentsDir, fileName)
+    // Use legacy API for better compatibility
+    const fileUri = FileSystem.documentDirectory + fileName
     
-    // Write the JSON file using the new API
-    await file.write(jsonString)
+    // Write the JSON file
+    await FileSystem.writeAsStringAsync(fileUri, jsonString)
 
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync()
     if (isAvailable) {
-      await Sharing.shareAsync(file.path, {
+      await Sharing.shareAsync(fileUri, {
         mimeType: 'application/json',
         dialogTitle: 'Export MaoMao Notes Data',
         UTI: 'public.json'
