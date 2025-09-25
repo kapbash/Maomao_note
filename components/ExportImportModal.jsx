@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet, Modal } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,7 +46,9 @@ export default function ExportImportModal({ visible, onClose, onExport, onImport
     setImporting(true);
 
     try {
-      const fileContent = await FileSystem.readAsStringAsync(selectedFile.uri);
+      // Use the new File API to read the file
+      const file = new File(selectedFile.uri);
+      const fileContent = await file.text();
       const data = JSON.parse(fileContent);
       
       // Call the parent's import function
