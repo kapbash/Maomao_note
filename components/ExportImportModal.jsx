@@ -1,74 +1,63 @@
-// components/ExportImportModal.jsx
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import * as FileSystem from 'expo-file-system/legacy';
-
+import { View, Text, TouchableOpacity, Alert, StyleSheet, Modal } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function ExportImportModal({ onClose }) {
+export default function ExportImportModal({ visible, onClose, onExport, onImport }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // ------------------ EXPORT ------------------
-  const exportData = async () => {
+  const handleExport = async () => {
+    setExporting(true);
     try {
-      const keys = await AsyncStorage.getAllKeys();
-      const allData = await AsyncStorage.multiGet(keys);
-
-      const exportObject = {};
-      allData.forEach(([key, value]) => {
-        exportObject[key] = JSON.parse(value);
-      });
-
-      const fileUri = FileSystem.documentDirectory + `maomao_notes_${Date.now()}.json`;
-      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(exportObject, null, 2));
-
-      Alert.alert('Success', 'Data exported successfully!');
-
+      // Call the parent's export function to get the data
+      await onExport();
     } catch (error) {
-      console.error(error);
+      console.error('Export error:', error);
       Alert.alert('Error', 'Failed to export data.');
+    } finally {
+      setExporting(false);
     }
   };
 
   // ------------------ IMPORT ------------------
   const pickFile = async () => {
     try {
-      const res = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
-      if (res.type === 'success') {
-        setSelectedFile(res);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+      
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setSelectedFile(result.assets[0]);
       }
     } catch (error) {
-      console.error(error);
+      console.error('File picker error:', error);
       Alert.alert('Error', 'Failed to pick file.');
     }
   };
 
-  const importData = async () => {
+  const handleImport = async () => {
     if (!selectedFile) return;
     setImporting(true);
 
     try {
       const fileContent = await FileSystem.readAsStringAsync(selectedFile.uri);
       const data = JSON.parse(fileContent);
-
-      // Clear current storage
-      const keys = await AsyncStorage.getAllKeys();
-      await AsyncStorage.multiRemove(keys);
-
-      // Save imported data
-      const entries = Object.entries(data).map(([key, value]) => [key, JSON.stringify(value)]);
-      await AsyncStorage.multiSet(entries);
-
+      
+      // Call the parent's import function
+      onImport(data);
+      
       Alert.alert('Success', 'Data imported successfully!');
       setSelectedFile(null);
-
+      onClose();
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Failed to import data.');
+      console.error('Import error:', error);
+      Alert.alert('Error', 'Failed to import data. Please check if the file is a valid JSON format.');
     } finally {
       setImporting(false);
     }
@@ -77,59 +66,72 @@ export default function ExportImportModal({ onClose }) {
   const clearFile = () => setSelectedFile(null);
 
   return (
-    <View style={styles.overlay}>
-      <View style={styles.modal}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Export / Import Data</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="cloud-upload-outline" size={24} color="black" />
-
-          </TouchableOpacity>
-        </View>
-
-        {/* Export Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Export Your Data</Text>
-          <TouchableOpacity style={styles.btn} onPress={exportData}>
-            <Ionicons name="cloud-upload-outline" size={24} color="black" />
-
-            <Text style={styles.btnText}>Export Data</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Import Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Import Data</Text>
-          <TouchableOpacity style={styles.btn} onPress={pickFile}>
-            <Ionicons name="cloud-upload-outline" size={24} color="black" />
-
-            <Text style={styles.btnText}>Choose File</Text>
-          </TouchableOpacity>
-
-          {selectedFile && (
-            <View style={styles.selectedFile}>
-              <Text>{selectedFile.name}</Text>
-              <TouchableOpacity onPress={clearFile}>
-                <Ionicons name="cloud-upload-outline" size={24} color="black" />
-
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {selectedFile && (
-            <TouchableOpacity
-              style={[styles.btn, importing && { opacity: 0.6 }]}
-              onPress={importData}
-              disabled={importing}
-            >
-              <Ionicons name="cloud-upload-outline" size={24} color="black" />
-
-              <Text style={styles.btnText}>{importing ? 'Importing...' : 'Import Data'}</Text>
+    <Modal visible={visible} animationType="slide" transparent={true}>
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Export / Import Data</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
-          )}
+          </View>
+
+          {/* Export Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Export Your Data</Text>
+            <Text style={styles.description}>
+              Export all your categories and items as a JSON file
+            </Text>
+            <TouchableOpacity 
+              style={[styles.btn, exporting && { opacity: 0.6 }]} 
+              onPress={handleExport}
+              disabled={exporting}
+            >
+              <Ionicons name="cloud-upload-outline" size={20} color="#fff" />
+              <Text style={styles.btnText}>
+                {exporting ? 'Exporting...' : 'Export Data'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Import Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Import Data</Text>
+            <Text style={styles.description}>
+              Import data from a previously exported JSON file
+            </Text>
+            <TouchableOpacity style={styles.btn} onPress={pickFile}>
+              <Ionicons name="folder-outline" size={20} color="#fff" />
+              <Text style={styles.btnText}>Choose JSON File</Text>
+            </TouchableOpacity>
+
+            {selectedFile && (
+              <View style={styles.selectedFile}>
+                <Text style={styles.fileName} numberOfLines={1}>
+                  {selectedFile.name}
+                </Text>
+                <TouchableOpacity onPress={clearFile}>
+                  <Ionicons name="close-circle" size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {selectedFile && (
+              <TouchableOpacity
+                style={[styles.btn, styles.importBtn, importing && { opacity: 0.6 }]}
+                onPress={handleImport}
+                disabled={importing}
+              >
+                <Ionicons name="cloud-download-outline" size={20} color="#fff" />
+                <Text style={styles.btnText}>
+                  {importing ? 'Importing...' : 'Import Data'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
-    </View>
+    </Modal>
   );
 }
 
@@ -142,33 +144,66 @@ const styles = StyleSheet.create({
   },
   modal: {
     width: '90%',
+    maxWidth: 400,
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  title: { fontSize: 18, fontWeight: 'bold' },
-  section: { marginBottom: 16 },
-  sectionTitle: { fontWeight: '600', marginBottom: 8 },
+  title: { 
+    fontSize: 18, 
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  section: { 
+    marginBottom: 20 
+  },
+  sectionTitle: { 
+    fontWeight: '600', 
+    marginBottom: 4,
+    fontSize: 16,
+    color: '#333',
+  },
+  description: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+  },
   btn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#4B0082',
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
     justifyContent: 'center',
     marginTop: 8,
   },
-  btnText: { color: '#fff', marginLeft: 8, fontWeight: '600' },
+  importBtn: {
+    backgroundColor: '#4CAF50',
+  },
+  btnText: { 
+    color: '#fff', 
+    marginLeft: 8, 
+    fontWeight: '600',
+    fontSize: 14,
+  },
   selectedFile: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 6,
     justifyContent: 'space-between',
+  },
+  fileName: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
   },
 });

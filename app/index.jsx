@@ -112,8 +112,9 @@ const Home = () => {
       return
     }
     
-    const processedData = { categories: processImportData(data) }
-    importData(processedData)
+    const processedCategories = processImportData(data)
+    importData({ categories: processedCategories })
+    Alert.alert('Success', 'Data imported successfully!')
   }
 
   return (
