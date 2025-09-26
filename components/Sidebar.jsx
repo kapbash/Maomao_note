@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Animated } from 'react-native'
 import React from 'react'
+import { Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 
 const Sidebar = ({ 
@@ -11,7 +12,8 @@ const Sidebar = ({
   onAddCategory, 
   onSelectCategory, 
   onDeleteCategory,
-  onExportImportPress
+  onExportImportPress,
+  onClearAllData
 }) => {
   return (
     <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>
@@ -119,6 +121,20 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   exportImportText: {
+    color: '#fff',
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  clearDataBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f44336',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  clearDataText: {
     color: '#fff',
     marginLeft: 8,
     fontSize: 14,

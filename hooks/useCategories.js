@@ -1,9 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { generateId } from '../utils/dataManager'
+
+const STORAGE_KEY = 'maomao_notes_data'
 
 export const useCategories = () => {
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Load data from AsyncStorage on app start
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  // Save data to AsyncStorage whenever categories change
+  useEffect(() => {
+    if (!isLoading) {
+      saveData()
+    }
+  }, [categories, isLoading])
+
+  const loadData = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem(STORAGE_KEY)
+      if (savedData) {
+        const parsedData = JSON.parse(savedData)
+        setCategories(parsedData.categories || [])
+      }
+    } catch (error) {
+      console.error('Error loading data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const saveData = async () => {
+    try {
+      const dataToSave = {
+        categories,
+        savedAt: new Date().toISOString()
+      }
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave))
+    } catch (error) {
+      console.error('Error saving data:', error)
+    }
+  }
 
   const addCategory = (name) => {
     if (name.trim() === "") return
@@ -115,9 +157,20 @@ export const useCategories = () => {
     setSelectedCategory(null)
   }
 
+  const clearAllData = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY)
+      setCategories([])
+      setSelectedCategory(null)
+    } catch (error) {
+      console.error('Error clearing data:', error)
+    }
+  }
+
   return {
     categories,
     selectedCategory,
+    isLoading,
     setSelectedCategory,
     addCategory,
     deleteCategory,
@@ -125,6 +178,7 @@ export const useCategories = () => {
     editItem,
     deleteItem,
     updateCategorySortOrder,
-    importData
+    importData,
+    clearAllData
   }
 }

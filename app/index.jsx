@@ -25,6 +25,7 @@ const Home = () => {
   const {
     categories,
     selectedCategory,
+    isLoading,
     setSelectedCategory,
     addCategory,
     deleteCategory,
@@ -32,7 +33,8 @@ const Home = () => {
     editItem,
     deleteItem,
     updateCategorySortOrder,
-    importData
+    importData,
+    clearAllData
   } = useCategories()
 
   const {
@@ -117,6 +119,15 @@ const Home = () => {
     Alert.alert('Success', 'Data imported successfully!')
   }
 
+  // Show loading screen while data is being loaded
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <Text style={styles.loadingText}>Loading your notes...</Text>
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       {/* Navbar */}
@@ -165,6 +176,7 @@ const Home = () => {
         onSelectCategory={handleSelectCategory}
         onDeleteCategory={deleteCategory}
         onExportImportPress={() => setExportImportModalVisible(true)}
+        onClearAllData={clearAllData}
       />
 
       {/* Add/Edit Item Modal */}
@@ -202,5 +214,13 @@ const styles = StyleSheet.create({
   body: { 
     flex: 1, 
     padding: 16 
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#666',
   },
 })
