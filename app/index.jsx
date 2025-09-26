@@ -10,6 +10,8 @@ import ItemModal from '../components/ItemModal'
 import SearchBar from '../components/SearchBar'
 import SortButton from '../components/SortButton'
 import ExportImportModal from '../components/ExportImportModal'
+import FlashcardModal from '../components/FlashcardModal'
+import FlashcardButton from '../components/FlashcardButton'
 
 // Hooks
 import { useCategories } from '../hooks/useCategories'
@@ -69,6 +71,7 @@ const Home = () => {
   const [newCategoryName, setNewCategoryName] = useState("")
   const [expandedIndex, setExpandedIndex] = useState(null)
   const [exportImportModalVisible, setExportImportModalVisible] = useState(false)
+  const [flashcardModalVisible, setFlashcardModalVisible] = useState(false)
 
   // Handlers
   const handleAddCategory = () => {
@@ -119,6 +122,10 @@ const Home = () => {
     Alert.alert('Success', 'Data imported successfully!')
   }
 
+  const handleOpenFlashcards = () => {
+    setFlashcardModalVisible(true)
+  }
+
   // Show loading screen while data is being loaded
   if (isLoading) {
     return (
@@ -151,6 +158,12 @@ const Home = () => {
       <AddItemButton 
         selectedCategory={selectedCategory} 
         onPress={openModal} 
+      />
+
+      {/* Flashcard Button */}
+      <FlashcardButton 
+        selectedCategory={selectedCategory} 
+        onPress={handleOpenFlashcards} 
       />
 
       {/* Body */}
@@ -199,6 +212,14 @@ const Home = () => {
         onClose={() => setExportImportModalVisible(false)}
         onExport={handleExport}
         onImport={handleImport}
+      />
+
+      {/* Flashcard Modal */}
+      <FlashcardModal
+        visible={flashcardModalVisible}
+        onClose={() => setFlashcardModalVisible(false)}
+        items={filteredAndSortedItems}
+        categoryName={selectedCategory?.name}
       />
     </View>
   )
