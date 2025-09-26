@@ -94,10 +94,18 @@ const Home = () => {
     }
     
     closeModal()
+    // Reset expanded index to show changes immediately
+    setExpandedIndex(null)
   }
 
   const handleEditItem = (item, index) => {
     openEditModal(item, index)
+  }
+
+  const handleDeleteItem = (index) => {
+    deleteItem(index)
+    // Reset expanded index after deletion
+    setExpandedIndex(null)
   }
 
   const handleSortChange = (sortOrder) => {
@@ -174,7 +182,7 @@ const Home = () => {
           expandedIndex={expandedIndex}
           setExpandedIndex={setExpandedIndex}
           onEditItem={handleEditItem}
-          onDeleteItem={deleteItem}
+          onDeleteItem={handleDeleteItem}
         />
       </View>
 

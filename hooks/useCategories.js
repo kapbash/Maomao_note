@@ -88,6 +88,10 @@ export const useCategories = () => {
     })
 
     setCategories(updatedCategories)
+    
+    // Update selected category to reflect changes immediately
+    const updatedSelectedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id)
+    setSelectedCategory(updatedSelectedCategory)
   }
 
   const editItem = (itemIndex, updatedItem) => {
@@ -113,6 +117,10 @@ export const useCategories = () => {
     })
 
     setCategories(updatedCategories)
+    
+    // Update selected category to reflect changes immediately
+    const updatedSelectedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id)
+    setSelectedCategory(updatedSelectedCategory)
   }
 
   const deleteItem = (itemIndex) => {
@@ -130,6 +138,10 @@ export const useCategories = () => {
     })
 
     setCategories(updatedCategories)
+    
+    // Update selected category to reflect changes immediately
+    const updatedSelectedCategory = updatedCategories.find(cat => cat.id === selectedCategory.id)
+    setSelectedCategory(updatedSelectedCategory)
   }
 
   const updateCategorySortOrder = (categoryId, sortOrder) => {
